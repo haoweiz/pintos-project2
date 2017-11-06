@@ -13,12 +13,15 @@
 #include "userprog/process.h"
 #include "threads/malloc.h"
 
+/* A lock which is used to read and write.*/
 static struct lock filesys_lock;
 
 static void syscall_handler (struct intr_frame *);
 
+/* Save memory access*/
 bool validate_pointer(const void *vaddr);
 
+/* All 13 system call functions*/
 void halt(void);
 void exit(int status);
 int read(int fd,void *buffer,unsigned size);
@@ -33,14 +36,14 @@ void seek(int fd,unsigned position);
 unsigned tell(int fd);
 void close(int fd);
 
-struct file_info* lookup(int handle);
-
 void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
+
+/* Use f->esp to extract arguments from user stack and save them in args[3], syscall_nr is system call number which correspond to enumeration defined in syscall_nr.h */
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
@@ -108,6 +111,7 @@ syscall_handler (struct intr_frame *f UNUSED)
   }
 }
 
+/* Test whether the pointer is problematic, if *vaddr is null pointer, or point to unmapped user memory, or point to kernel address, return false */
 bool validate_pointer(const void *vaddr){
   if(vaddr != NULL && is_user_vaddr(vaddr) && pagedir_get_page(thread_current()->pagedir,vaddr) != NULL)
     return true;
@@ -115,14 +119,17 @@ bool validate_pointer(const void *vaddr){
     return false;
 }
 
+/* Shut the pintos down*/
 void halt(void){
   shutdown_power_off();
 }
 
+/* Wait for child child process terminates.*/
 int wait(pid_t pid){
   return process_wait(pid);
 }
 
+/* Execute a new process with command line *cmd_line*/
 pid_t exec(const char *cmd_line){
   if(!validate_pointer(cmd_line))
     exit(-1);
@@ -144,6 +151,7 @@ pid_t exec(const char *cmd_line){
   return pid;
 }
 
+/* Exit current process with exit_status and print the exit status */
 void exit(int status){
   if(thread_current()->parent->is_alive){
     thread_current()->is_alive = false;
@@ -153,6 +161,7 @@ void exit(int status){
   thread_exit();
 }
 
+/* If fd equals STDIN_FILENO, read from console, otherwise read from file whose file descriptor is fd.*/
 int read(int fd,void *buffer,unsigned size){
   unsigned read_bytes = 0;
   if(fd == STDIN_FILENO){
@@ -182,6 +191,7 @@ int read(int fd,void *buffer,unsigned size){
   return read_bytes;
 }
 
+/* If fd equals STDOUT_FILENO, print to console, otherwise write to file whose file descriptor is fd.*/
 int write(int fd,const void *buffer,unsigned size){
   if(fd == STDOUT_FILENO){
     putbuf(buffer,size);
@@ -208,6 +218,7 @@ int write(int fd,const void *buffer,unsigned size){
   return wrote_bytes;
 }
 
+/* Create a file whose size is initial_size */
 bool create(const char *file,unsigned initial_size){
   if(file == NULL || !validate_pointer(file))
     exit(-1);
@@ -215,6 +226,7 @@ bool create(const char *file,unsigned initial_size){
   return success;
 }
 
+/* Open a file whose name is file */
 int open(const char *file){
   if(file == NULL)
     return -1;
@@ -235,6 +247,7 @@ int open(const char *file){
   return file_info->handle;
 }
 
+/* Return the size of file whose file descriptor is fd*/
 int filesize(int fd){
   struct list_elem *e;
   struct file *current_file;
@@ -250,11 +263,12 @@ int filesize(int fd){
   return file_length(current_file);
 }
 
-
+/* Delete file whose name is file*/
 bool remove(const char *file){
   return filesys_remove(file);
 }
 
+/* Changes the next byte to be read or written in open file fd to position */
 void seek(int fd,unsigned position){
   struct list_elem *e;
   struct file *current_file;
@@ -270,7 +284,8 @@ void seek(int fd,unsigned position){
   file_seek(current_file,position);
 }
 
-
+/* Returns the position of the next byte to be read or written in open file fd, expressed
+in bytes from the beginning of the file*/
 unsigned tell(int fd){
   struct list_elem *e;
   struct file *current_file;
@@ -285,6 +300,8 @@ unsigned tell(int fd){
     return -1;
   return file_tell(current_file);
 }
+
+/*Close file whose file descriptor is fd, if fd equals -1, close all of the files*/
 void close(int fd){
   struct list_elem *e;
   if(fd != -1){

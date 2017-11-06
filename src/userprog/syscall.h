@@ -6,6 +6,8 @@
 
 /* Process identifier. */
 typedef int pid_t;
+
+/* The element of list process_files which defined in struct thread. Each element saves the file descriptor if open file*/
 struct file_info{
   struct list_elem elem;
   struct file *file;

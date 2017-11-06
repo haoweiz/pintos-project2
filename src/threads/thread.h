@@ -103,17 +103,17 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
-    int exit_status;
-    bool load_bool;
-    bool waited;
-    bool is_alive;
-    int open_file_number;
-    struct semaphore load_sema;
-    struct semaphore wait_sema;
-    struct file *executable;
-    struct list process_files;
-    struct thread *parent;
-    struct list child_list;
+    int exit_status;                    /*The thread's exit status, exception with -1*/
+    bool load_bool;                     /*Whether elf file load successful*/
+    bool waited;                        /*The thread is waiting for its child process*/
+    bool is_alive;                      /*Current thread is not terminated*/
+    int open_file_number;               /*The number of files current thread opens*/
+    struct semaphore load_sema;         /*Block the current process until load elf successfully*/
+    struct semaphore wait_sema;         /*Block the current process until child process exit*/
+    struct file *executable;            /*The file other process cannot execute*/
+    struct list process_files;          /*A list of files current thread has opened*/
+    struct thread *parent;              /*The father of current thread*/
+    struct list child_list;             /*A list of child processes current thread has created*/
   };
 
 /* If false (default), use round-robin scheduler.

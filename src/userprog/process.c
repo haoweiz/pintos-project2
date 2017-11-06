@@ -113,7 +113,7 @@ process_wait (tid_t child_tid UNUSED)
   if(child_process == NULL || child_process->waited || !child_process->is_alive)
     return -1;
   thread_current()->waited = true;
-  sema_down(&thread_current()->wait_sema);
+  sema_down(&thread_current()->wait_sema);      /* Block current process and wait child process terminates */
   list_remove(&child_process->elem);
   thread_current()->waited = false;
   return child_process->exit_status;

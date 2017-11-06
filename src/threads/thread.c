@@ -206,6 +206,7 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
+/* Add created thread to current thread's child_list and set this created thread's father*/
   list_push_back(&thread_current()->child_list,&t->elem);
   t->parent = thread_current();
 
@@ -473,6 +474,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
 
+/* Initilize new added parameter*/
   t->exit_status = 0;
   t->executable = NULL;
   list_init(&t->process_files);
