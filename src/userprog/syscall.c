@@ -145,7 +145,7 @@ pid_t exec(const char *cmd_line){
       break;
     }
   }
-  sema_down(&thread_current()->load_sema);
+  sema_down(&thread_current()->load_sema);    /* Block current thread until child_process finish loading*/
   if(!child_process->load_bool)
     return -1;
   return pid;

@@ -74,7 +74,7 @@ start_process (void *file_name_)
     palloc_free_page (file_name);
     thread_exit();
   }
-  sema_up(&thread_current()->parent->load_sema);
+  sema_up(&thread_current()->parent->load_sema);            /* Unblock the father of current thread until finish loading*/
   thread_current()->executable = filesys_open(file_name);
   file_deny_write(thread_current()->executable);
   palloc_free_page (file_name);
@@ -136,7 +136,7 @@ process_exit (void)
         file_close(thread_current()->executable);
       }
       if(thread_current()->parent!=NULL&&thread_current()->parent->waited){
-        sema_up(&thread_current()->parent->wait_sema);
+        sema_up(&thread_current()->parent->wait_sema);                      /* Unblock the father of current thread */
       }
       /* Correct ordering here is crucial.  We must set
          cur->pagedir to NULL before switching page directories,
