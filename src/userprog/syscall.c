@@ -11,6 +11,7 @@
 #include "filesys/file.h"
 #include "filesys/filesys.h"
 #include "userprog/process.h"
+#include "threads/malloc.h"
 
 static struct lock filesys_lock;
 
@@ -102,7 +103,7 @@ syscall_handler (struct intr_frame *f UNUSED)
          };break;
     case SYS_CLOSE:{
            args[0] = *((int*)f->esp+1);
-           //close(args[0]);
+           close(args[0]);
          };break;
   }
 }
@@ -265,7 +266,7 @@ void seek(int fd,unsigned position){
     }
   }
   if(current_file == NULL)
-    return -1;
+    return;
   file_seek(current_file,position);
 }
 
@@ -284,25 +285,34 @@ unsigned tell(int fd){
     return -1;
   return file_tell(current_file);
 }
-
-
-/*void close(int fd){
+void close(int fd){
   struct list_elem *e;
-  struct file *current_file;
+  if(fd != -1){
+    struct file *current_file;
   current_file = NULL;
-  for(e = list_begin(&thread_current()->process_files);e != list_end(&thread_current()->process_files);e = list_next(e)){
-    if(list_entry (e, struct file_info, elem)->handle == fd){
-      current_file = list_entry (e, struct file_info, elem)->file;
-      break;
+    for(e = list_begin(&thread_current()->process_files);e != list_end(&thread_current()->process_files);e = list_next(e)){
+      if(list_entry (e, struct file_info, elem)->handle == fd){
+        current_file = list_entry (e, struct file_info, elem)->file;
+        break;
+      }
+    }
+    if(current_file == NULL)
+      return;
+    file_close(current_file);
+    thread_current()->open_file_number--;
+    list_remove(&list_entry(e,struct file_info,elem)->elem);
+    free(list_entry(e,struct file_info,elem));
+    return;
+  }
+  else{
+    for(e = list_begin(&thread_current()->process_files);e != list_end(&thread_current()->process_files);e = list_next(e)){
+      file_close(list_entry(e,struct file_info,elem)->file);
+      thread_current()->open_file_number--;
+      list_remove(&list_entry(e,struct file_info,elem)->elem);
+      free(list_entry(e,struct file_info,elem));
     }
   }
-  if(current_file == NULL)
-    return -1;
-  file_close(current_file);
-  thread_current()->open_file_number--;
-  list_remove(&list_entry(e,struct file_info,elem)->elem);
-  free(list_entry(e,struct file_info,elem));
-}*/
+}
 
 
 
