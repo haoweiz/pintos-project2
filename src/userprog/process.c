@@ -39,10 +39,21 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  char _file_name[100];
   char *token,*save_ptr;
-  token = strtok_r ((char*)file_name, " ", &save_ptr);
+  strlcpy(_file_name, file_name, strlen(file_name) + 1);  
+  file_name = strtok_r (_file_name, " ", &save_ptr);
+
+  /*char *_file_name = file_name;
+  char *token,*save_ptr;
+  int argc = 0;
+  char *argv[32];
+  for (token = strtok_r(_file_name," ",&save_ptr); token != NULL;token = strtok_r (NULL, " ", &save_ptr),argc++){
+          argv[argc] = token;
+  }*/
+  
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (token, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;

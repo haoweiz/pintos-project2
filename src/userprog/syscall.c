@@ -56,6 +56,8 @@ syscall_handler (struct intr_frame *f UNUSED)
     case SYS_HALT:halt();break;
     case SYS_EXIT:{
            args[0] = *((int*)f->esp+1);
+           if(args[0] < -1)
+             exit(-1);
            exit(args[0]);
          };break;
     case SYS_EXEC:{
